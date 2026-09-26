@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "nombre": "Permisos pa drogarse",
+    "descripcion": "Trámite de permisos y autorizaciones para obras de construcción",
+    "requisitos": ["Planos del proyecto", "Certificado de dominio", "Estudio de impacto"],
+    "dias_habiles": 15,
+    "costo": "$250.000",
+    "categoria": "Construcción"
+  },
+  {
+    "id": 2,
+    "nombre": "Patente Comercial",
+    "descripcion": "Solicitud de patente comercial para emprendimientos y negocios",
+    "requisitos": ["RUT", "Documento de identidad", "Propuesta de negocio"],
+    "dias_habiles": 10,
+    "costo": "$150.000",
+    "categoria": "Comercio"
+  },
+  {
+    "id": 3,
+    "nombre": "Licencia de Conducir",
+    "descripcion": "Renovación y emisión de licencias de conducir",
+    "requisitos": ["Cédula de identidad", "Certificado médico", "Fotos carnet"],
+    "dias_habiles": 7,
+    "costo": "$50.000",
+    "categoria": "Tránsito"
+  },
+  {
+    "id": 4,
+    "nombre": "Certificados de Dominio",
+    "descripcion": "Emisión de certificados que acreditan dominio de propiedades",
+    "requisitos": ["Documentos de propiedad", "Carátula de fojas", "Boleta de impuestos"],
+    "dias_habiles": 5,
+    "costo": "$30.000",
+    "categoria": "Catastro"
+  },
+  {
+    "id": 5,
+    "nombre": "Permisos de Funcionamiento",
+    "descripcion": "Autorización para funcionamiento de establecimientos comerciales",
+    "requisitos": ["Licencia comercial", "Acta sanitaria", "Plano del local"],
+    "dias_habiles": 12,
+    "costo": "$100.000",
+    "categoria": "Comercio"
+  },
+  {
+    "id": 6,
+    "nombre": "Solicitud de Bonificación",
+    "descripcion": "Solicitud de beneficios municipales y subsidios disponibles",
+    "requisitos": ["Formulario de solicitud", "Comprobante de ingresos", "Antecedentes socioeconómicos"],
+    "dias_habiles": 20,
+    "costo": "Sin costo",
+    "categoria": "Beneficios"
+  }
+]

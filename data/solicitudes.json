@@ -1,0 +1,72 @@
+[
+  {
+    "id": 101,
+    "nombre": "Solicitud de luminaria defectuosa",
+    "estado": "Pendiente",
+    "sector": "Centro",
+    "descripcion": "Falta iluminación en la intersección entre Av. Brasil y Calle Los Álamos."
+  },
+  {
+    "id": 102,
+    "nombre": "Revisión de bache en avenida principal",
+    "estado": "En proceso",
+    "sector": "La Serena",
+    "descripcion": "Se reporta deterioro en superficie de la avenida principal con peligro para peatones."
+  },
+  {
+    "id": 103,
+    "nombre": "Permiso para feria vecinal",
+    "estado": "Aprobada",
+    "sector": "Villa Frei",
+    "descripcion": "Solicitud para realizar feria vecinal con actividades culturales y gastronómicas."
+  },
+  {
+    "id": 104,
+    "nombre": "Solicita podas de árboles",
+    "estado": "Revisión",
+    "sector": "La Florida",
+    "descripcion": "Se requieren podas preventivas y retiro de ramas en zona de paso peatonal."
+  },
+  {
+    "id": 105,
+    "nombre": "Fuga de agua en calle Los Maitenes",
+    "estado": "Pendiente",
+    "sector": "Los Maitenes",
+    "descripcion": "Reporte de fuga de agua en vía pública con riesgo de inundación en zona habitacional."
+  },
+  {
+    "id": 106,
+    "nombre": "Solicitud de limpieza de alcantarillado",
+    "estado": "En proceso",
+    "sector": "San Francisco",
+    "descripcion": "Se solicita revisión y limpieza del sistema de alcantarillado por obstrucción recurrente."
+  },
+  {
+    "id": 107,
+    "nombre": "Aprobación de feria del barrio",
+    "estado": "Aprobada",
+    "sector": "El Milagro",
+    "descripcion": "Solicita autorización para evento vecinal con actividades recreativas y venta de productos locales."
+  },
+  {
+    "id": 108,
+    "nombre": "Reparación de vereda en esquina escolar",
+    "estado": "Revisión",
+    "sector": "Las Palmas",
+    "descripcion": "Existe un daño importante en la vereda cerca del establecimiento educacional."
+  },
+  {
+    "id": 109,
+    "nombre": "Solicita retiro de basura en plaza",
+    "estado": "Pendiente",
+    "sector": "Plaza de Armas",
+    "descripcion": "Acumulación de residuos en plaza central que requiere limpieza urgente."
+  },
+  {
+    "id": 110,
+    "nombre": "Consulta por señalética vial",
+    "estado": "En proceso",
+    "sector": "Pueblo Nuevo",
+    "descripcion": "Se solicita instalación de nuevos señalamientos para mejorar tránsito y seguridad."
+  }
+]

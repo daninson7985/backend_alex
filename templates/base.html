@@ -113,7 +113,7 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark" aria-label="Menú principal">
             <div class="container">
-                <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
+                <a class="navbar-brand fw-bold d-flex align-items-center" href="{% url 'home' %}">
                     <img src="{% static 'img/logo.png' %}" alt="Logo Municipalidad de La Serena" class="brand-logo">
                 </a>
 
@@ -123,10 +123,10 @@
 
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto align-items-center">
-                        <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/solicitudes/">Solicitudes</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/servicios/">Servicios</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/acerca/">Acerca</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Inicio</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'solicitudes' %}">Solicitudes</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'servicios' %}">Servicios</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'acerca' %}">Acerca</a></li>
                     </ul>
                 </div>
             </div>

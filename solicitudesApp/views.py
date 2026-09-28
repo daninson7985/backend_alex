@@ -1,54 +1,30 @@
-import json
-from pathlib import Path
+from django.db.models import Q
 from django.shortcuts import render
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / 'data'
-
-
-def leer_json(nombre_archivo):
-    ruta = DATA_DIR / nombre_archivo
-    with open(ruta, 'r', encoding='utf-8') as archivo:
-        return json.load(archivo)
+from serviciosApp.models import Servicio
+from .models import Solicitud
 
 
 def inicio(request):
-    titulo = "Municipalidad de La Serena"
-    mensaje = "Sistema de gestión y seguimiento de solicitudes ciudadanas"
-    servicios = leer_json('servicios.json')
-    total_servicios = len(servicios)
-    usuario = "Funcionario municipal"
-    es_admin = True
-
-    if es_admin:
-        estado = "Acceso autorizado"
-    else:
-        estado = "Acceso restringido"
-
     contexto = {
-        "titulo": titulo,
-        "mensaje": mensaje,
-        "servicios": servicios,
-        "total_servicios": total_servicios,
-        "usuario": usuario,
-        "estado": estado,
+        'total_solicitudes': Solicitud.objects.count(),
+        'total_servicios': Servicio.objects.count(),
     }
     return render(request, 'inicio.html', contexto)
 
 
 def solicitudes(request):
-    solicitudes_lista = leer_json('solicitudes.json')
     busqueda = request.GET.get('q', '').strip()
+    solicitudes_lista = Solicitud.objects.all().order_by('id')
 
     if busqueda:
-        solicitudes_lista = [
-            item for item in solicitudes_lista
-            if busqueda.lower() in item.get('nombre', '').lower()
-            or busqueda.lower() in item.get('sector', '').lower()
-            or busqueda.lower() in item.get('descripcion', '').lower()
-        ]
+        solicitudes_lista = solicitudes_lista.filter(
+            Q(nombre__icontains=busqueda)
+            | Q(estado__icontains=busqueda)
+            | Q(sector__icontains=busqueda)
+            | Q(descripcion__icontains=busqueda)
+        )
 
-    cantidad = len(solicitudes_lista)
+    cantidad = solicitudes_lista.count()
     contexto = {
         "solicitudes_lista": solicitudes_lista,
         "cantidad": cantidad,
@@ -60,7 +36,7 @@ def solicitudes(request):
 def acerca(request):
     nombre_proyecto = "Portal de Solicitudes Municipales"
     version = "1.0.0"
-    tecnologias = ["Python", "Django", "Bootstrap", "JSON"]
+    tecnologias = ["Python", "Django", "Bootstrap", "MySQL y ORM"]
     contexto = {
         "nombre_proyecto": nombre_proyecto,
         "version": version,

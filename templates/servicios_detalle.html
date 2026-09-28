@@ -34,12 +34,12 @@
 
                     <h4 style="color: #7a2e36; font-weight: 700;">Requisitos</h4>
                     <ul style="color: #5a5a5a;">
-                        {% for requisito in servicio.requisitos %}
-                        <li>{{ requisito }}</li>
+                        {% for requisito in servicio.requisitos.all %}
+                        <li>{{ requisito.descripcion }}</li>
                         {% endfor %}
                     </ul>
 
-                    <a href="/servicios/" class="btn btn-municipal mt-3">Volver a servicios</a>
+                    <a href="{% url 'servicios' %}" class="btn btn-municipal mt-3">Volver a servicios</a>
                 </div>
             </div>
         </div>

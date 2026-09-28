@@ -1,7 +1,31 @@
+# Python
 venv/
+env/
 .venv/
+ENV/
 __pycache__/
 *.py[cod]
-db.sqlite3
+.Python
+
+# Django and local configuration
+*.log
+local_settings.py
 .env
-evaluacion.zip
+.env.local
+datos.json
+staticfiles/
+*.sqlite3
+media/
+
+# Editors and operating system
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Temporary Office lock files
+~$*.docx
+~$*.xlsx
+~$*.pptx

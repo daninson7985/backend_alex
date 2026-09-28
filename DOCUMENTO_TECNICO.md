@@ -4,7 +4,7 @@
 
 **Evaluación:** Aplicación Django con persistencia relacional
 **Repositorio:** [daninson7985/backend_alex](https://github.com/daninson7985/backend_alex)
-**Rama de esta evaluación:** `evaluacion-django`
+**Rama de esta evaluación:** `main`
 **Estudiante:** Completar con nombre
 **Fecha de revisión:** Completar
 
@@ -63,7 +63,7 @@ Desde la raíz del repositorio:
 ```powershell
 git clone https://github.com/daninson7985/backend_alex.git
 cd backend_alex
-git switch evaluacion-django
+git switch main
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt

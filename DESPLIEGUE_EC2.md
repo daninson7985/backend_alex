@@ -1,6 +1,6 @@
 # Despliegue de la evaluación en AWS EC2
 
-Esta guía despliega el proyecto de este repositorio (`backend_alex`, rama `evaluacion-django`) en una instancia Linux. La configuración usa MySQL/MariaDB en EC2 para que las tablas puedan inspeccionarse desde phpMyAdmin. No publiques el archivo `.env`, contraseñas, llaves `.pem` ni la base de datos.
+Esta guía despliega el proyecto de este repositorio (`backend_alex`, rama `main`) en una instancia Linux. La configuración usa MySQL/MariaDB en EC2 para que las tablas puedan inspeccionarse desde phpMyAdmin. No publiques el archivo `.env`, contraseñas, llaves `.pem` ni la base de datos.
 
 ## 1. Crear y conectar la instancia
 
@@ -21,7 +21,7 @@ ssh -i RUTA_DE_LA_LLAVE.pem ubuntu@IP_PUBLICA
 ```bash
 sudo apt update
 sudo apt install -y git python3 python3-venv python3-pip python3-dev build-essential pkg-config libmariadb-dev mariadb-server apache2 php php-mysql php-mbstring php-zip php-gd phpmyadmin
-git clone --branch evaluacion-django https://github.com/daninson7985/backend_alex.git
+git clone --branch main https://github.com/daninson7985/backend_alex.git
 cd backend_alex
 python3 -m venv venv
 source venv/bin/activate

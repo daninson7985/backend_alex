@@ -1,104 +1,73 @@
-# Despliegue de la evaluación en AWS EC2
+# Despliegue de la evaluación en AWS EC2 con SQLite
 
-Esta guía despliega el proyecto de este repositorio (`backend_alex`, rama `main`) en una instancia Linux. La configuración usa MySQL/MariaDB en EC2 para que las tablas puedan inspeccionarse desde phpMyAdmin. No publiques el archivo `.env`, contraseñas, llaves `.pem` ni la base de datos.
+Esta guía instala el proyecto de GitHub en una instancia Ubuntu EC2 y utiliza SQLite, igual que la configuración local de Django. SQLite guarda todas las tablas en el archivo `db.sqlite3`; no requiere instalar ni configurar MariaDB/MySQL. phpMyAdmin no sirve para SQLite: para inspeccionar las tablas usa `sqlite3` o DB Browser for SQLite.
+
+No publiques `.env`, `db.sqlite3`, contraseñas ni llaves `.pem` en GitHub.
 
 ## 1. Crear y conectar la instancia
 
-Usa una instancia Ubuntu LTS con Python, Git y acceso SSH. En el grupo de seguridad permite:
+Usa una instancia Ubuntu LTS. En su grupo de seguridad permite:
 
 - TCP 22 solo desde tu IP para SSH.
-- TCP 80 solo desde la IP del docente/revisor para phpMyAdmin.
-- TCP 8000 solo desde la IP del docente/revisor durante la demostración.
+- TCP 8000 desde tu IP y la del revisor mientras haces la demostración. `0.0.0.0/0` permite acceso desde cualquier dirección; evita dejarlo abierto después.
 
 Conéctate desde tu computador:
 
-```bash
-ssh -i RUTA_DE_LA_LLAVE.pem ubuntu@IP_PUBLICA
+```powershell
+ssh -i "C:\ruta\a\tu-llave.pem" ubuntu@IP_PUBLICA
 ```
 
-## 2. Instalar paquetes del sistema y clonar el repositorio
+## 2. Instalar Python, Git y clonar `main`
+
+En la terminal SSH de EC2:
 
 ```bash
 sudo apt update
-sudo apt install -y git python3 python3-venv python3-pip python3-dev build-essential pkg-config libmariadb-dev mariadb-server apache2 php php-mysql php-mbstring php-zip php-gd phpmyadmin
+sudo apt install -y git python3 python3-venv python3-pip
 git clone --branch main https://github.com/daninson7985/backend_alex.git
 cd backend_alex
-python3 -m venv venv
-source venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-```
-
-El historial y la clonación se pueden demostrar con:
-
-```bash
 git remote -v
 git log --oneline -5
 ```
 
-## 3. Crear la base MySQL/MariaDB
+El repositorio es público; para clonarlo por HTTPS no necesitas configurar un token personal de GitHub.
 
-Abre la consola de MariaDB:
-
-```bash
-sudo mariadb
-```
-
-Crea una base y un usuario propios. Reemplaza la contraseña de ejemplo por una segura:
-
-```sql
-CREATE DATABASE evaluacion CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'evaluacion_user'@'localhost' IDENTIFIED BY 'REEMPLAZAR_POR_UNA_CLAVE_SEGURA';
-GRANT ALL PRIVILEGES ON evaluacion.* TO 'evaluacion_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
-
-Durante la instalación de phpMyAdmin selecciona Apache2 cuando el instalador pregunte qué servidor web configurar. Si la selección no aparece, habilita la configuración de Apache para phpMyAdmin y reinicia Apache:
+## 3. Crear el entorno virtual e instalar Django
 
 ```bash
-sudo phpenmod mbstring
-sudo systemctl restart apache2
+python3 -m venv venv
+source venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python --version
+python -m django --version
 ```
 
-Ingresa a `http://IP_PUBLICA/phpmyadmin` con el usuario MariaDB creado arriba. Mantén el puerto 80 restringido al IP del revisor; no expongas phpMyAdmin a todo Internet.
+## 4. Configurar Django
 
-## 4. Configurar variables de entorno
-
-Crea `.env` en la raíz del repositorio. No lo subas a GitHub:
+Genera una `SECRET_KEY` nueva y crea el archivo `.env`:
 
 ```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 cp .env.example .env
 chmod 600 .env
 nano .env
 ```
 
-Configura valores reales:
+Configura las variables. Sustituye la IP y la clave secreta por los valores reales:
 
 ```env
-SECRET_KEY=REEMPLAZAR_POR_UN_SECRETO_ALEATORIO
+SECRET_KEY=PEGA_AQUI_LA_CLAVE_ALEATORIA
 DEBUG=False
-ALLOWED_HOSTS=IP_PUBLICA_O_DOMINIO
+ALLOWED_HOSTS=IP_PUBLICA_EC2
 CSRF_TRUSTED_ORIGINS=
-DB_USE_MYSQL=1
-DB_NAME=evaluacion
-DB_USER=evaluacion_user
-DB_PASSWORD=REEMPLAZAR_POR_LA_CLAVE_MYSQL
-DB_HOST=127.0.0.1
-DB_PORT=3306
 ```
 
-Genera una clave Django aleatoria sin reutilizar el valor de ejemplo:
+Guarda en `nano` con **Ctrl+O**, Enter, y sal con **Ctrl+X**. Si usas un dominio con HTTPS, agrega su origen completo, por ejemplo `https://ejemplo.cl`, a `CSRF_TRUSTED_ORIGINS`.
 
-```bash
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
+## 5. Crear y verificar la base SQLite
 
-Si usas HTTPS, agrega el origen completo a `CSRF_TRUSTED_ORIGINS`, por ejemplo `https://ejemplo.cl`. `ALLOWED_HOSTS` recibe nombres de host/IP sin esquema ni puerto.
-
-## 5. Migrar y verificar
-
-Con el entorno virtual activo y `.env` configurado:
+Desde la raíz del repositorio y con el entorno virtual activo:
 
 ```bash
 python manage.py check
@@ -108,31 +77,75 @@ python manage.py createsuperuser
 python manage.py collectstatic --noinput
 ```
 
-En phpMyAdmin selecciona la base `evaluacion`. Deben aparecer las tablas de Django y las tablas de las entidades: `solicitudesApp_solicitud`, `serviciosApp_categoria`, `serviciosApp_servicio` y `serviciosApp_requisito`. Confirma las relaciones `Servicio -> Categoria` y `Requisito -> Servicio`.
+La base de datos queda en `db.sqlite3`. La migración `serviciosApp.0008_dejar_catalogos_vacios` deja vacías las cuatro tablas del dominio durante la instalación para que puedas ingresar categorías, servicios, requisitos y solicitudes desde Django Admin. Se ejecuta una sola vez: no vuelvas a eliminar el archivo de base de datos después de crear registros.
 
-La migración `serviciosApp.0008_dejar_catalogos_vacios` deja vacías las tablas del dominio para que ingreses las categorías, servicios, requisitos y solicitudes desde `/admin/`. Comprueba que esté aplicada con `python manage.py showmigrations serviciosApp solicitudesApp`. No uses archivos JSON con sesiones o usuarios exportados.
+Para comprobar que las tablas existen:
 
-## 6. Ejecutar para la demostración
+```bash
+python manage.py dbshell
+```
 
-Para la revisión presencial, ejecuta Django enlazado a la interfaz de red de la instancia:
+En la consola SQLite que se abre:
+
+```sql
+.tables
+SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name;
+```
+
+La instancia Ubuntu necesita el paquete `sqlite3` para abrir la consola mediante `dbshell`. Si no está instalado:
+
+```bash
+sudo apt install -y sqlite3
+```
+
+También puedes consultar conteos desde Django:
+
+```bash
+python manage.py shell -c "from solicitudesApp.models import Solicitud; from serviciosApp.models import Categoria, Servicio, Requisito; print('solicitudes:', Solicitud.objects.count(), 'categorias:', Categoria.objects.count(), 'servicios:', Servicio.objects.count(), 'requisitos:', Requisito.objects.count())"
+```
+
+Para ver visualmente el archivo `db.sqlite3`, descárgalo a tu computador y ábrelo con DB Browser for SQLite. No necesitas phpMyAdmin.
+
+## 6. Ejecutar el sitio para la demostración
 
 ```bash
 python manage.py runserver --insecure 0.0.0.0:8000
 ```
 
-Abre `http://IP_PUBLICA:8000/`, `/solicitudes/`, `/servicios/` y `/admin/`. Mantén abierta la terminal para demostrar el entorno virtual, las migraciones y los registros.
+Deja la sesión SSH y el proceso abiertos durante la demostración. Visita:
 
-La opción `--insecure` permite servir los archivos estáticos durante la demostración aunque `DEBUG=False`. `runserver` y `--insecure` son solo para desarrollo/revisión, no para producción permanente. Para producción real usa un servidor WSGI como Gunicorn detrás de Nginx y un servicio `systemd`.
+- `http://IP_PUBLICA_EC2:8000/`
+- `http://IP_PUBLICA_EC2:8000/solicitudes/`
+- `http://IP_PUBLICA_EC2:8000/servicios/`
+- `http://IP_PUBLICA_EC2:8000/admin/`
 
-## 7. Evidencias para la revisión
+Inicia sesión en `/admin/` con el superusuario creado y agrega allí los registros.
+
+`runserver --insecure` es únicamente para la evaluación/demostración, no para un despliegue de producción permanente. Para producción se recomienda Gunicorn detrás de Nginx y un servicio `systemd`.
+
+## 7. Actualizar el código en EC2
+
+Cuando publiques cambios en GitHub, actualiza el código sin borrar la base SQLite:
+
+```bash
+cd ~/backend_alex
+git pull origin main
+source venv/bin/activate
+python -m pip install -r requirements.txt
+python manage.py migrate
+python manage.py collectstatic --noinput
+```
+
+Detén Django con **Ctrl+C** y vuelve a ejecutar `runserver` para cargar el nuevo código. Haz una copia de seguridad de `db.sqlite3` antes de cambios importantes; nunca reemplaces la base por un archivo vacío si deseas conservar tus registros.
+
+## 8. Evidencias para la revisión
 
 Captura evidencia real y legible de:
 
-- Instancia EC2, sistema Linux, conexión SSH y proyecto clonado.
-- `git remote -v`, historial de commits y rama desplegada.
-- Entorno virtual activo, `python --version`, Django y `showmigrations`.
-- Sitio respondiendo desde EC2 y administración Django.
-- Creación, búsqueda, modificación y eliminación desde Django Admin.
-- Tablas, relaciones y registros en phpMyAdmin.
+- Instancia EC2, conexión SSH, entorno virtual y sistema Linux.
+- Clonación, `git remote -v`, rama `main` e historial de commits.
+- `python manage.py showmigrations` con las migraciones aplicadas.
+- Sitio respondiendo desde la IP pública y operaciones en Django Admin.
+- Tablas y registros en `db.sqlite3`, usando `sqlite3`, `dbshell` o DB Browser for SQLite.
 
-No incluyas contraseñas, claves privadas, `.env` ni información personal en las capturas.
+No incluyas `.env`, contraseñas, llaves privadas ni datos personales en las capturas.

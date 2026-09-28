@@ -28,8 +28,7 @@ Las cuatro entidades están registradas en Django Admin. Las migraciones viven e
 
 - Python 3.12 o superior compatible con Django 6.1.
 - Git.
-- SQLite para desarrollo local.
-- MySQL o MariaDB para desplegar en EC2 y revisar las tablas desde phpMyAdmin.
+- SQLite para desarrollo local y EC2. La base persistente está en `db.sqlite3`.
 
 ## Ejecución local
 
@@ -45,7 +44,7 @@ python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-Edita `.env` y reemplaza `SECRET_KEY` por un valor aleatorio. En desarrollo puedes usar `DEBUG=True` y dejar `DB_USE_MYSQL=0` para que Django cree `db.sqlite3`.
+Edita `.env` y reemplaza `SECRET_KEY` por un valor aleatorio. En desarrollo puedes usar `DEBUG=True`; Django usa SQLite y crea `db.sqlite3` automáticamente al aplicar las migraciones.
 
 ```powershell
 python manage.py check
@@ -67,8 +66,8 @@ python manage.py makemigrations --check --dry-run
 
 ## Despliegue y evidencias
 
-Consulta [DESPLIEGUE_EC2.md](DESPLIEGUE_EC2.md) para configurar MySQL/MariaDB, clonar la rama desde GitHub y ejecutar Django en EC2.
+Consulta [DESPLIEGUE_EC2.md](DESPLIEGUE_EC2.md) para clonar el repositorio y ejecutar Django con SQLite en EC2. SQLite no es compatible con phpMyAdmin; usa `sqlite3` o DB Browser for SQLite para inspeccionar las tablas.
 
 El borrador del entregable técnico con arquitectura, modelo de datos y espacios para las evidencias está en [DOCUMENTO_TECNICO.md](DOCUMENTO_TECNICO.md). Complétalo con tu nombre y capturas reales, y expórtalo a PDF o Word para entregar.
 
-El repositorio no contiene `.env`, bases de datos locales ni credenciales. Las capturas solicitadas de AWS, phpMyAdmin, GitHub y la instancia deben tomarse del entorno real durante el despliegue; no se incluyen evidencias simuladas.
+El repositorio no contiene `.env`, bases de datos locales ni credenciales. Las capturas de AWS, SQLite, GitHub y la instancia deben tomarse del entorno real durante el despliegue; no se incluyen evidencias simuladas.

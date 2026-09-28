@@ -41,7 +41,7 @@ El repositorio contiene un único proyecto Django (`config`) y las siguientes ap
 | `static/` | Bootstrap, imágenes y JavaScript estáticos. |
 | `manage.py` | Comandos Django para verificar, migrar, probar y ejecutar el proyecto. |
 
-En desarrollo se utiliza SQLite. Para el despliegue descrito en `DESPLIEGUE_EC2.md` se puede configurar MySQL/MariaDB con variables de entorno y verificar las tablas desde phpMyAdmin.
+El proyecto utiliza SQLite tanto localmente como en EC2. El archivo persistente `db.sqlite3` contiene las tablas del sistema. SQLite no se inspecciona con phpMyAdmin; se puede revisar con la consola `sqlite3` o DB Browser for SQLite.
 
 ## 3. Modelo de datos
 
@@ -70,7 +70,7 @@ python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-Edita `.env` para asignar una clave secreta propia. Para SQLite local usa `DB_USE_MYSQL=0`; `DEBUG=True` permite ejecutar la página con `python manage.py runserver`.
+Edita `.env` para asignar una clave secreta propia. Django usa SQLite por defecto; `DEBUG=True` permite ejecutar la página con `python manage.py runserver`.
 
 ```powershell
 python manage.py check
@@ -92,12 +92,11 @@ Las variables están documentadas en `.env.example`; el archivo `.env` real est�
 | `DEBUG` | Activar solo durante desarrollo local. |
 | `ALLOWED_HOSTS` | IP o dominios permitidos para servir Django. |
 | `CSRF_TRUSTED_ORIGINS` | Orígenes completos de confianza si se usa HTTPS/proxy. |
-| `DB_USE_MYSQL` | `1` usa MySQL; `0` usa SQLite. |
-| `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` | Conexión MySQL/MariaDB. |
+| Base SQLite | Archivo `db.sqlite3` en la raíz del proyecto; mantenerlo fuera de Git y respaldarlo en EC2. |
 
 ## 6. Despliegue y evidencias de revisión
 
-Los pasos para crear una instancia Linux EC2, instalar Python y Git, clonar el repositorio, configurar MySQL/MariaDB, migrar y ejecutar Django están en `DESPLIEGUE_EC2.md`.
+Los pasos para crear una instancia Linux EC2, instalar Python y Git, clonar el repositorio, crear la base SQLite y ejecutar Django están en `DESPLIEGUE_EC2.md`.
 
 Completar esta sección con capturas reales del entorno desplegado:
 
@@ -106,7 +105,7 @@ Completar esta sección con capturas reales del entorno desplegado:
 3. **Entorno y migraciones:** `[PENDIENTE: captura de venv, python --version, showmigrations y migrate]`
 4. **Aplicación en EC2:** `[PENDIENTE: captura del sitio y sus listados en el navegador]`
 5. **Django Admin:** `[PENDIENTE: capturas de entidades y operaciones CRUD]`
-6. **phpMyAdmin:** `[PENDIENTE: capturas de tablas, relaciones y registros]`
+6. **SQLite:** `[PENDIENTE: captura de tablas, relaciones y registros desde sqlite3 o DB Browser for SQLite]`
 
 No incluir contraseñas, `.env`, llaves privadas ni datos personales en las capturas. Para generar el entregable PDF, abre este Markdown en el editor o visor que uses, imprímelo/exporta a PDF y agrega las capturas reales en los espacios anteriores.
 
@@ -116,7 +115,7 @@ Registrar evidencia del trabajo realizado con IA, contrastándola con el histori
 
 - **Solicitud inicial:** aplicar la pauta de evaluación completa al proyecto Django compartido y mantener el contenido únicamente en el repositorio `backend_alex`.
 - **Solicitud de seguimiento:** revisar si faltan requisitos y agregarlos.
-- **Respuesta aplicada al código:** depuración del árbol del proyecto; actualización de la documentación y configuración para EC2/MySQL; protección de migraciones frente a borrado de datos; datos iniciales idempotentes; navegación a entidades relacionadas en Admin; y pruebas para listados, búsquedas y enlaces de administración.
+- **Respuesta aplicada al código:** depuración del árbol del proyecto; configuración SQLite para EC2; protección de migraciones frente a borrado de datos; tablas vacías para ingresar desde Admin; navegación a entidades relacionadas en Admin; y pruebas para listados, búsquedas y enlaces de administración.
 - **Limitación informada:** la instancia EC2, las capturas reales y la verificación final de ejecución requieren acceso al entorno AWS y un intérprete Python funcional.
 
 Agregar capturas de los prompts y respuestas desde la herramienta de IA utilizada durante el desarrollo: `[PENDIENTE: evidencia de la conversación]`.

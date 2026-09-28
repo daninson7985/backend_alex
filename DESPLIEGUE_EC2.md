@@ -1,174 +1,138 @@
-# Despliegue de La Serena en AWS EC2
+# Despliegue de la evaluación en AWS EC2
 
-Esta guía conserva el proceso para sincronizar GitHub con EC2, usar SQLite, aplicar migraciones, crear el superusuario y ejecutar Django.
+Esta guía despliega el proyecto de este repositorio (`backend_alex`, rama `evaluacion-django`) en una instancia Linux. La configuración usa MySQL/MariaDB en EC2 para que las tablas puedan inspeccionarse desde phpMyAdmin. No publiques el archivo `.env`, contraseñas, llaves `.pem` ni la base de datos.
 
-## 1. Estado del proyecto
+## 1. Crear y conectar la instancia
 
-- Repositorio: `https://github.com/daninson7985/La_serena.git`
-- Rama: `main`
-- Base de datos de despliegue: SQLite
-- Aplicaciones: `serviciosApp` y `solicitudesApp`
-- Administracion: `/admin/`
-- Pagina publica: `/`
+Usa una instancia Ubuntu LTS con Python, Git y acceso SSH. En el grupo de seguridad permite:
 
-No se deben publicar `.env`, `db.sqlite3`, `venv` ni respaldos de datos con usuarios.
+- TCP 22 solo desde tu IP para SSH.
+- TCP 80 solo desde la IP del docente/revisor para phpMyAdmin.
+- TCP 8000 solo desde la IP del docente/revisor durante la demostración.
 
-## 2. Conectarse a EC2
+Conéctate desde tu computador:
 
 ```bash
-ssh -i RUTA_DE_LA_LLAVE.pem ec2-user@IP_PUBLICA
-cd /var/www/laserena
+ssh -i RUTA_DE_LA_LLAVE.pem ubuntu@IP_PUBLICA
+```
+
+## 2. Instalar paquetes del sistema y clonar el repositorio
+
+```bash
+sudo apt update
+sudo apt install -y git python3 python3-venv python3-pip python3-dev build-essential pkg-config libmariadb-dev mariadb-server apache2 php php-mysql php-mbstring php-zip php-gd phpmyadmin
+git clone --branch evaluacion-django https://github.com/daninson7985/backend_alex.git
+cd backend_alex
+python3 -m venv venv
 source venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-## 3. Sincronizar con GitHub
-
-Si la rama local de EC2 tiene una historia divergente, primero conserva una copia de referencia y luego sincroniza la rama desplegada:
+El historial y la clonación se pueden demostrar con:
 
 ```bash
-git fetch origin main
-git branch respaldo-ec2-antes-de-actualizar
-git reset --hard origin/main
+git remote -v
+git log --oneline -5
 ```
 
-Comprobar la version instalada:
+## 3. Crear la base MySQL/MariaDB
+
+Abre la consola de MariaDB:
 
 ```bash
-git log -1 --oneline
+sudo mariadb
 ```
 
-## 4. Configurar SQLite
+Crea una base y un usuario propios. Reemplaza la contraseña de ejemplo por una segura:
 
-El archivo `.env` no se sube a GitHub. Debe existir en EC2 y contener una configuracion similar:
+```sql
+CREATE DATABASE evaluacion CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'evaluacion_user'@'localhost' IDENTIFIED BY 'REEMPLAZAR_POR_UNA_CLAVE_SEGURA';
+GRANT ALL PRIVILEGES ON evaluacion.* TO 'evaluacion_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+Durante la instalación de phpMyAdmin selecciona Apache2 cuando el instalador pregunte qué servidor web configurar. Si la selección no aparece, habilita la configuración de Apache para phpMyAdmin y reinicia Apache:
+
+```bash
+sudo phpenmod mbstring
+sudo systemctl restart apache2
+```
+
+Ingresa a `http://IP_PUBLICA/phpmyadmin` con el usuario MariaDB creado arriba. Mantén el puerto 80 restringido al IP del revisor; no expongas phpMyAdmin a todo Internet.
+
+## 4. Configurar variables de entorno
+
+Crea `.env` en la raíz del repositorio. No lo subas a GitHub:
+
+```bash
+cp .env.example .env
+chmod 600 .env
+nano .env
+```
+
+Configura valores reales:
 
 ```env
-SECRET_KEY=CAMBIAR_POR_UN_SECRETO_REAL
+SECRET_KEY=REEMPLAZAR_POR_UN_SECRETO_ALEATORIO
 DEBUG=False
 ALLOWED_HOSTS=IP_PUBLICA_O_DOMINIO
-DB_USE_MYSQL=0
+CSRF_TRUSTED_ORIGINS=
+DB_USE_MYSQL=1
+DB_NAME=evaluacion
+DB_USER=evaluacion_user
+DB_PASSWORD=REEMPLAZAR_POR_LA_CLAVE_MYSQL
+DB_HOST=127.0.0.1
+DB_PORT=3306
 ```
 
-Instalar la dependencia de configuracion:
+Genera una clave Django aleatoria sin reutilizar el valor de ejemplo:
 
 ```bash
-python -m pip install python-decouple
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-No es necesario instalar `mysqlclient` cuando `DB_USE_MYSQL=0`.
+Si usas HTTPS, agrega el origen completo a `CSRF_TRUSTED_ORIGINS`, por ejemplo `https://ejemplo.cl`. `ALLOWED_HOSTS` recibe nombres de host/IP sin esquema ni puerto.
 
-## 5. Aplicar migraciones
+## 5. Migrar y verificar
+
+Con el entorno virtual activo y `.env` configurado:
 
 ```bash
 python manage.py check
+python manage.py showmigrations
 python manage.py migrate
-```
-
-La migracion `0006_vaciar_datos_de_ejemplo` deja vacias las tablas de la aplicacion para que los datos se ingresen desde Django Admin.
-
-Comprobar cantidades:
-
-```bash
-python manage.py shell -c "from serviciosApp.models import Categoria, Servicio, Requisito; from solicitudesApp.models import Solicitud; print(Categoria.objects.count(), Servicio.objects.count(), Requisito.objects.count(), Solicitud.objects.count())"
-```
-
-Resultado inicial esperado:
-
-```text
-0 0 0 0
-```
-
-No ejecutar `loaddata datos.json`: el fixture fue retirado del repositorio para evitar publicar datos sensibles.
-
-## 6. Crear el superusuario
-
-```bash
 python manage.py createsuperuser
+python manage.py collectstatic --noinput
 ```
 
-Usar el usuario creado para ingresar en:
+En phpMyAdmin selecciona la base `evaluacion`. Deben aparecer las tablas de Django y las tablas de las entidades: `solicitudesApp_solicitud`, `serviciosApp_categoria`, `serviciosApp_servicio` y `serviciosApp_requisito`. Confirma las relaciones `Servicio -> Categoria` y `Requisito -> Servicio`.
 
-```text
-http://IP_PUBLICA/admin/
-```
+La migración `serviciosApp.0008_dejar_catalogos_vacios` deja vacías las tablas del dominio para que ingreses las categorías, servicios, requisitos y solicitudes desde `/admin/`. Comprueba que esté aplicada con `python manage.py showmigrations serviciosApp solicitudesApp`. No uses archivos JSON con sesiones o usuarios exportados.
 
-Desde Admin se pueden crear y modificar:
+## 6. Ejecutar para la demostración
 
-- Categorias.
-- Servicios.
-- Requisitos.
-- Solicitudes.
-
-## 7. Ejecutar Django temporalmente
-
-Para exponer el servidor en el puerto 8000:
+Para la revisión presencial, ejecuta Django enlazado a la interfaz de red de la instancia:
 
 ```bash
-nohup python manage.py runserver 0.0.0.0:8000 > django.log 2>&1 &
+python manage.py runserver --insecure 0.0.0.0:8000
 ```
 
-Verificar que el puerto este escuchando:
+Abre `http://IP_PUBLICA:8000/`, `/solicitudes/`, `/servicios/` y `/admin/`. Mantén abierta la terminal para demostrar el entorno virtual, las migraciones y los registros.
 
-```bash
-ss -ltnp | grep 8000
-curl -I http://127.0.0.1:8000/solicitudes/
-```
+La opción `--insecure` permite servir los archivos estáticos durante la demostración aunque `DEBUG=False`. `runserver` y `--insecure` son solo para desarrollo/revisión, no para producción permanente. Para producción real usa un servidor WSGI como Gunicorn detrás de Nginx y un servicio `systemd`.
 
-El resultado esperado es `HTTP/1.1 200 OK`.
+## 7. Evidencias para la revisión
 
-Abrir desde el navegador:
+Captura evidencia real y legible de:
 
-```text
-http://IP_PUBLICA:8000/
-http://IP_PUBLICA:8000/solicitudes/
-http://IP_PUBLICA:8000/admin/
-```
+- Instancia EC2, sistema Linux, conexión SSH y proyecto clonado.
+- `git remote -v`, historial de commits y rama desplegada.
+- Entorno virtual activo, `python --version`, Django y `showmigrations`.
+- Sitio respondiendo desde EC2 y administración Django.
+- Creación, búsqueda, modificación y eliminación desde Django Admin.
+- Tablas, relaciones y registros en phpMyAdmin.
 
-En AWS Security Group se debe permitir TCP `8000` si se accede directamente a ese puerto.
-
-## 8. Produccion con Gunicorn y Nginx
-
-La URL sin puerto (`http://IP_PUBLICA/`) normalmente es atendida por Nginx y Gunicorn, no por `runserver`. Luego de actualizar el codigo, reiniciar el servicio:
-
-```bash
-sudo systemctl list-units --type=service | grep -Ei "gunicorn|laserena|django"
-sudo systemctl restart NOMBRE_DEL_SERVICIO
-sudo systemctl status NOMBRE_DEL_SERVICIO --no-pager
-```
-
-## 9. Diagnostico rapido
-
-### El puerto 8000 esta ocupado
-
-```bash
-ss -ltnp | grep 8000
-```
-
-No iniciar un segundo `runserver` si ya existe un proceso escuchando.
-
-### Django devuelve 400 Bad Request
-
-Agregar la IP publica o dominio a `ALLOWED_HOSTS` en `.env` y reiniciar Gunicorn o Django.
-
-### Falta `decouple`
-
-```bash
-python -m pip install python-decouple
-```
-
-### Falta `MySQLdb`
-
-El proyecto final usa SQLite. Confirmar que `.env` tenga:
-
-```env
-DB_USE_MYSQL=0
-```
-
-### La base tiene datos inesperados
-
-Verificar que se haya aplicado la migracion final:
-
-```bash
-python manage.py showmigrations serviciosApp solicitudesApp
-```
-
-La migracion `0006_vaciar_datos_de_ejemplo` debe aparecer con `[X]`.
+No incluyas contraseñas, claves privadas, `.env` ni información personal en las capturas.

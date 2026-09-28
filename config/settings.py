@@ -20,6 +20,11 @@ ALLOWED_HOSTS = config(
     default='127.0.0.1,localhost',
     cast=Csv(),
 )
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='',
+    cast=Csv(),
+)
 
 
 # Application definition
@@ -81,6 +86,7 @@ DATABASES = {
                 'charset': 'utf8mb4',
                 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             },
+            'CONN_MAX_AGE': 60,
         }
         if config('DB_USE_MYSQL', default='0', cast=bool)
         else {
@@ -127,12 +133,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

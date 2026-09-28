@@ -2,15 +2,27 @@ from django.contrib import admin
 from .models import Categoria, Requisito, Servicio
 
 
+class ServicioInline(admin.TabularInline):
+    model = Servicio
+    extra = 0
+
+
+class RequisitoInline(admin.TabularInline):
+    model = Requisito
+    extra = 0
+
+
 class CategoriaAdmin(admin.ModelAdmin):
     list_display = ('nombre',)
     search_fields = ('nombre',)
+    inlines = (ServicioInline,)
 
 
 class ServicioAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'categoria', 'dias_habiles', 'costo')
     search_fields = ('nombre', 'categoria__nombre', 'descripcion')
     list_filter = ('categoria',)
+    inlines = (RequisitoInline,)
 
 
 class RequisitoAdmin(admin.ModelAdmin):

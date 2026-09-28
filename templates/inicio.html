@@ -14,8 +14,28 @@
             <h2 class="subtitulo-principal">Municipalidad</h2>
 
             <div class="mt-4 d-flex justify-content-center justify-content-lg-start gap-3 flex-wrap">
-                <a href="/solicitudes/" class="btn btn-municipal btn-lg">Solicitudes</a>
-                <a href="/acerca/" class="btn btn-outline-municipal btn-lg">Acerca</a>
+                <a href="{% url 'solicitudes' %}" class="btn btn-municipal btn-lg">Solicitudes</a>
+                <a href="{% url 'acerca' %}" class="btn btn-outline-municipal btn-lg">Acerca</a>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 justify-content-center mt-4">
+        <div class="col-sm-6 col-lg-4">
+            <div class="card h-100 text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="h5">Solicitudes registradas</h3>
+                    <p class="display-6 mb-0">{{ total_solicitudes }}</p>
+                    <a href="{% url 'solicitudes' %}" class="btn btn-outline-municipal mt-3">Ver solicitudes</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card h-100 text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="h5">Servicios disponibles</h3>
+                    <p class="display-6 mb-0">{{ total_servicios }}</p>
+                    <a href="{% url 'servicios' %}" class="btn btn-outline-municipal mt-3">Ver servicios</a>
+                </div>
             </div>
         </div>
     </div>

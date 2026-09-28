@@ -5,25 +5,9 @@ from .models import Solicitud
 
 
 def inicio(request):
-    titulo = "Municipalidad de La Serena"
-    mensaje = "Sistema de gestión y seguimiento de solicitudes ciudadanas"
-    servicios = Servicio.objects.select_related('categoria').order_by('nombre')
-    total_servicios = servicios.count()
-    usuario = "Funcionario municipal"
-    es_admin = True
-
-    if es_admin:
-        estado = "Acceso autorizado"
-    else:
-        estado = "Acceso restringido"
-
     contexto = {
-        "titulo": titulo,
-        "mensaje": mensaje,
-        "servicios": servicios,
-        "total_servicios": total_servicios,
-        "usuario": usuario,
-        "estado": estado,
+        'total_solicitudes': Solicitud.objects.count(),
+        'total_servicios': Servicio.objects.count(),
     }
     return render(request, 'inicio.html', contexto)
 
